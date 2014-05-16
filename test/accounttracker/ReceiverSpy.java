@@ -32,4 +32,5 @@ public class ReceiverSpy implements DebitMessageReceiver, CreateDebitReceiver, D
     public void descriptionIs(String description) {
         this.description = description;
     }
+
 }

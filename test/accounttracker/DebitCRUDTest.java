@@ -1,12 +1,11 @@
 package accounttracker;
 
 import accounttracker.inmemory.InMemoryDebitStore;
-import accounttracker.usecases.CreateDebitCommand;
-import accounttracker.usecases.DeleteDebitCommand;
-import accounttracker.usecases.ReadDebitCommand;
-import accounttracker.usecases.UpdateDebitCommand;
+import accounttracker.usecases.*;
+import accounttracker.usecases.boundaries.DebitData;
 import accounttracker.usecases.boundaries.DebitNotFoundException;
 import accounttracker.usecases.boundaries.DebitStore;
+import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,7 +13,9 @@ import static org.junit.Assert.*;
 
 public class DebitCRUDTest {
     private ReceiverSpy receiver;
+    public  IterableReceiverSpy iterableReceiver;
     private DebitStore debitStore = new InMemoryDebitStore();
+    private int numberOfDebits;
 
     private void createDebit(double value, String description) {
         new CreateDebitCommand(new RequestStub(value, description), receiver, debitStore).execute();
@@ -56,6 +57,7 @@ public class DebitCRUDTest {
     @Before
     public void setUp() {
         receiver = new ReceiverSpy();
+        iterableReceiver = new IterableReceiverSpy();
     }
 
     @Test
@@ -138,5 +140,30 @@ public class DebitCRUDTest {
         createDebit(12d, "Snack");
         deleteDebit();
         assertDebitNotFound(receiver.id);
+    }
+
+    @Test
+    public void whenReadingAllDebits_shouldReturnAll(){
+        createDebit(20d, "Dinner");
+        createDebit(10d, "Lunch");
+
+        new ReadAllDebitsCommand(new RequestStub(), iterableReceiver, debitStore).execute();
+
+        assertDebitListContains(20d, "Dinner");
+        assertDebitListContains(10d, "Lunch");
+        Assert.assertEquals(2, numberOfDebits);
+
+
+    }
+
+    private void assertDebitListContains(double value, String description) {
+        boolean contains = false;
+        for(DebitData debit : iterableReceiver.debitList){
+            if(debit.value == value && debit.description == description){
+                contains = true;
+                numberOfDebits++;
+            }
+        }
+        Assert.assertEquals(true, contains);
     }
 }

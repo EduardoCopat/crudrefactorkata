@@ -23,6 +23,10 @@ public class RequestStub implements DebitRequest, IdBasedRequest, UpdateDebitReq
         this.description = description;
     }
 
+    public RequestStub() {
+
+    }
+
     public String id() {
         return id;
     }
